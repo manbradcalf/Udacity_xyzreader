@@ -17,7 +17,11 @@
 
 <resources>
 
-    <style name="AppTheme" parent="@style/Theme.AppCompat.Light">
+    <style name="AppTheme" parent="@style/Theme.AppCompat.Light.NoActionBar">
+
+    </style>
+
+    <style name="XYZToolbar" parent="@style/Widget.AppCompat.Toolbar">
 
     </style>
 
