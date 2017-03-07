@@ -21,8 +21,4 @@
 
     </style>
 
-    <style name="XYZToolbar" parent="@style/Widget.AppCompat.Toolbar">
-
-    </style>
-
 </resources>
