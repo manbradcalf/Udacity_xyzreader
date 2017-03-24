@@ -126,6 +126,9 @@ public class ArticleListActivity extends AppCompatActivity implements
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
             final ViewHolder vh = new ViewHolder(view);
+
+            // Set the transition name for the animation to something unique, like title
+            vh.setTransitionName(mCursor.getString(ArticleLoader.Query.TITLE));
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -135,7 +138,7 @@ public class ArticleListActivity extends AppCompatActivity implements
 
                     ActivityOptionsCompat options = ActivityOptionsCompat
                             .makeSceneTransitionAnimation((Activity) vh.c,
-                                    vh.thumbnailView, "article_image");
+                                    vh.thumbnailView, vh.transitionName);
                     startActivity(intent, options.toBundle());
                 }
             });
@@ -161,7 +164,7 @@ public class ArticleListActivity extends AppCompatActivity implements
             // This enables the image to slide into the fragment in the viewpager
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             {
-                holder.thumbnailView.setTransitionName("article_image");
+//                holder.thumbnailView.setTransitionName("article_image");
             }
         }
 
@@ -176,6 +179,8 @@ public class ArticleListActivity extends AppCompatActivity implements
         public TextView titleView;
         public TextView subtitleView;
         public Context c;
+        public String transitionName;
+
 
 
         public ViewHolder(View view) {
@@ -184,6 +189,10 @@ public class ArticleListActivity extends AppCompatActivity implements
             titleView = (TextView) view.findViewById(R.id.article_title);
             subtitleView = (TextView) view.findViewById(R.id.article_subtitle);
             c = view.getContext();
+        }
+
+        public void setTransitionName(String name) {
+            transitionName = name;
         }
     }
 }

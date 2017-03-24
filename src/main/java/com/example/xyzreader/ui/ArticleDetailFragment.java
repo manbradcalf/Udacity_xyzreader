@@ -137,7 +137,7 @@ public class ArticleDetailFragment extends Fragment implements
         {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             {
-//                mPhotoView.setTransitionName("image" + mCursor.getString(ArticleLoader.Query.TITLE));
+                mPhotoView.setTransitionName(mCursor.getString(ArticleLoader.Query.TITLE));
             }
             mRootView.setAlpha(0);
             mRootView.setVisibility(View.VISIBLE);
