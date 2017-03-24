@@ -6,8 +6,10 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.app.ActivityCompat;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
@@ -20,6 +22,7 @@ import android.widget.TextView;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -49,6 +52,7 @@ public class ArticleDetailFragment extends Fragment implements
     private int mScrollY;
     private boolean mIsCard = false;
     private int mStatusBarFullOpacityBottom;
+    private String mTransitionName;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -121,6 +125,7 @@ public class ArticleDetailFragment extends Fragment implements
         }
 
         mPhotoView = (ImageView) mRootView.findViewById(R.id.toolbar_article_image);
+
         mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
         TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
@@ -130,6 +135,10 @@ public class ArticleDetailFragment extends Fragment implements
 
         if (mCursor != null)
         {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            {
+//                mPhotoView.setTransitionName("image" + mCursor.getString(ArticleLoader.Query.TITLE));
+            }
             mRootView.setAlpha(0);
             mRootView.setVisibility(View.VISIBLE);
             mRootView.animate().alpha(1);
@@ -145,7 +154,20 @@ public class ArticleDetailFragment extends Fragment implements
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY)));
             Picasso.with(getActivity().getApplicationContext())
                     .load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
-                    .into(mPhotoView);
+                    .into(mPhotoView, new Callback()
+                    {
+                        @Override
+                        public void onSuccess()
+                        {
+                            ActivityCompat.startPostponedEnterTransition(getActivity());
+                        }
+
+                        @Override
+                        public void onError()
+                        {
+                            ActivityCompat.startPostponedEnterTransition(getActivity());
+                        }
+                    });
         }
         else
         {
@@ -203,6 +225,10 @@ public class ArticleDetailFragment extends Fragment implements
         return mIsCard
                 ? (int) mPhotoContainerView.getTranslationY() + mPhotoView.getHeight() - mScrollY
                 : mPhotoView.getHeight() - mScrollY;
+    }
+
+    public void setTransitionName(String transitionName) {
+        mTransitionName = transitionName;
     }
 
 }
