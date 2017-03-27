@@ -8,8 +8,8 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.v4.app.ActivityCompat;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -24,6 +25,7 @@ import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 
 /**
  * A fragment representing a single Article detail screen. This fragment is
@@ -53,6 +55,21 @@ public class ArticleDetailFragment extends Fragment implements
     private boolean mIsCard = false;
     private int mStatusBarFullOpacityBottom;
     private String mTransitionName;
+    private static final String ARG_ARTICLE_POSITION = "arg_article_position";
+    private static final String ARG_STARTING_ARTICLE_IMAGE_POSITION = "arg_starting_article_image_position";
+    private int mArticlePosition;
+    private int mStartingPosition;
+    private final Callback mImageCallback = new Callback() {
+        @Override
+        public void onSuccess() {
+            scheduleStartPostponedTransition(mPhotoView);
+        }
+
+        @Override
+        public void onError() {
+            scheduleStartPostponedTransition(mPhotoView);
+        }
+    };
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -62,10 +79,12 @@ public class ArticleDetailFragment extends Fragment implements
     {
     }
 
-    public static ArticleDetailFragment newInstance(long itemId)
+    public static ArticleDetailFragment newInstance(long itemId, int position, int startingPosition)
     {
         Bundle arguments = new Bundle();
         arguments.putLong(ARG_ITEM_ID, itemId);
+        arguments.putInt(ARG_ARTICLE_POSITION, position);
+        arguments.putInt(ARG_STARTING_ARTICLE_IMAGE_POSITION, startingPosition);
         ArticleDetailFragment fragment = new ArticleDetailFragment();
         fragment.setArguments(arguments);
         return fragment;
@@ -84,6 +103,9 @@ public class ArticleDetailFragment extends Fragment implements
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
         mStatusBarFullOpacityBottom = getResources().getDimensionPixelSize(
                 R.dimen.detail_card_top_margin);
+        mStartingPosition = getArguments().getInt(ARG_STARTING_ARTICLE_IMAGE_POSITION);
+//        mArticlePosition = getArguments().getInt(ARG_ARTICLE_POSITION);
+//        mStartingPosition = (int) mPhotoView.getTag(TAG_STARTING_POSITION);
         setHasOptionsMenu(true);
     }
 
@@ -126,7 +148,6 @@ public class ArticleDetailFragment extends Fragment implements
 
         mPhotoView = (ImageView) mRootView.findViewById(R.id.toolbar_article_image);
 
-        mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
         TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
         bylineView.setMovementMethod(new LinkMovementMethod());
@@ -152,22 +173,9 @@ public class ArticleDetailFragment extends Fragment implements
                             + mCursor.getString(ArticleLoader.Query.AUTHOR)
                             + "</font>"));
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY)));
-            Picasso.with(getActivity().getApplicationContext())
-                    .load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
-                    .into(mPhotoView, new Callback()
-                    {
-                        @Override
-                        public void onSuccess()
-                        {
-                            ActivityCompat.startPostponedEnterTransition(getActivity());
-                        }
-
-                        @Override
-                        public void onError()
-                        {
-                            ActivityCompat.startPostponedEnterTransition(getActivity());
-                        }
-                    });
+            RequestCreator articleImageRequest = Picasso.with(getActivity())
+                    .load(mCursor.getString(ArticleLoader.Query.PHOTO_URL));
+            articleImageRequest.into(mPhotoView, mImageCallback);
         }
         else
         {
@@ -227,9 +235,24 @@ public class ArticleDetailFragment extends Fragment implements
                 : mPhotoView.getHeight() - mScrollY;
     }
 
-    public void setTransitionName(String transitionName) {
-        mTransitionName = transitionName;
-    }
+    private void scheduleStartPostponedTransition(final View sharedElement)
+    {
+//        if (mArticlePosition == mStartingPosition)
+        {
+            sharedElement.getViewTreeObserver().addOnPreDrawListener(
+                    new ViewTreeObserver.OnPreDrawListener()
+                    {
+                        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+                        @Override
+                        public boolean onPreDraw()
+                        {
+                            sharedElement.getViewTreeObserver().removeOnPreDrawListener(this);
+                            getActivity().startPostponedEnterTransition();
+                            return true;
+                        }
+                    });
+        }
 
+    }
 }
 

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -38,6 +37,10 @@ public class ArticleListActivity extends AppCompatActivity implements
     private Toolbar mToolbar;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
+    static final String EXTRA_STARTING_ARTICLE_POSITION = "extra_starting_item_position";
+    static final String EXTRA_CURRENT_ARTICLE_POSITION = "extra_current_article_position";
+    static final int TAG_STARTING_POSITION = 0;
+
 
 
     @Override
@@ -160,12 +163,6 @@ public class ArticleListActivity extends AppCompatActivity implements
                     mCursor.getString(ArticleLoader.Query.THUMB_URL),
                     ImageLoaderHelper.getInstance(ArticleListActivity.this).getImageLoader());
             holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
-            // Setting transition name for material animation
-            // This enables the image to slide into the fragment in the viewpager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            {
-//                holder.thumbnailView.setTransitionName("article_image");
-            }
         }
 
         @Override
