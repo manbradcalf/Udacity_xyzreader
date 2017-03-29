@@ -1,6 +1,5 @@
 package com.example.xyzreader.ui;
 
-import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,10 +17,12 @@ import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
+import com.example.xyzreader.data.Constants;
 import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.data.UpdaterService;
 
@@ -38,9 +39,9 @@ public class ArticleListActivity extends AppCompatActivity implements
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
     static final String EXTRA_STARTING_ARTICLE_POSITION = "extra_starting_item_position";
-    static final String EXTRA_CURRENT_ARTICLE_POSITION = "extra_current_article_position";
+    static final String STATE_CURRENT_ARTICLE_POSITION = "state_current_article_position";
     static final int TAG_STARTING_POSITION = 0;
-
+    private Bundle mTmpReenterState;
 
 
     @Override
@@ -56,6 +57,29 @@ public class ArticleListActivity extends AppCompatActivity implements
         if (savedInstanceState == null) {
             refresh();
         }
+    }
+
+    @Override
+    public void onActivityReenter(int requestCode, Intent data) {
+        super.onActivityReenter(requestCode, data);
+        mTmpReenterState = new Bundle(data.getExtras());
+        int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ARTICLE_POSITION);
+        int currentPosition = mTmpReenterState.getInt(STATE_CURRENT_ARTICLE_POSITION);
+        if (startingPosition != currentPosition) {
+//            mRecyclerView.smoothScrollToPosition(currentPosition);
+            mRecyclerView.scrollToPosition(currentPosition);
+        }
+        postponeEnterTransition();
+        mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                mRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                // TODO: figure out why it is necessary to request layout here in order to get a smooth transition.
+                mRecyclerView.requestLayout();
+                startPostponedEnterTransition();
+                return true;
+            }
+        });
     }
 
     private void refresh() {
@@ -130,18 +154,19 @@ public class ArticleListActivity extends AppCompatActivity implements
             View view = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
             final ViewHolder vh = new ViewHolder(view);
 
-            // Set the transition name for the animation to something unique, like title
-            vh.setTransitionName(mCursor.getString(ArticleLoader.Query.TITLE));
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
-                    Intent intent = new Intent(Intent.ACTION_VIEW,
-                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())));
+                    Intent intent = new Intent(
+                            Intent.ACTION_VIEW,
+                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))
+                    );
+                    intent.putExtra(EXTRA_STARTING_ARTICLE_POSITION, vh.mArticlePosition);
 
                     ActivityOptionsCompat options = ActivityOptionsCompat
-                            .makeSceneTransitionAnimation((Activity) vh.c,
-                                    vh.thumbnailView, vh.transitionName);
+                            .makeSceneTransitionAnimation(ArticleListActivity.this,
+                                    vh.thumbnailView, vh.thumbnailView.getTransitionName());
                     startActivity(intent, options.toBundle());
                 }
             });
@@ -159,10 +184,22 @@ public class ArticleListActivity extends AppCompatActivity implements
                             DateUtils.FORMAT_ABBREV_ALL).toString()
                             + " by "
                             + mCursor.getString(ArticleLoader.Query.AUTHOR));
+            // Set the image
             holder.thumbnailView.setImageUrl(
                     mCursor.getString(ArticleLoader.Query.THUMB_URL),
                     ImageLoaderHelper.getInstance(ArticleListActivity.this).getImageLoader());
             holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
+
+            // Add the position and title to the arraylist for transition name access in DetailActivity
+            if(Constants.ARTICLES.size() == 0 || Constants.ARTICLES.size() <= position)
+            {
+                Constants.ARTICLES.add(position,mCursor.getString(ArticleLoader.Query.TITLE));
+            }
+            // Set the transition name for the animation to something unique, like title
+            holder.thumbnailView.setTransitionName(mCursor.getString(ArticleLoader.Query.TITLE));
+            holder.thumbnailView.setTag(mCursor.getString(ArticleLoader.Query.TITLE));
+            holder.mArticlePosition = position;
+
         }
 
         @Override
@@ -175,21 +212,13 @@ public class ArticleListActivity extends AppCompatActivity implements
         public DynamicHeightNetworkImageView thumbnailView;
         public TextView titleView;
         public TextView subtitleView;
-        public Context c;
-        public String transitionName;
-
-
+        public int mArticlePosition;
 
         public ViewHolder(View view) {
             super(view);
             thumbnailView = (DynamicHeightNetworkImageView) view.findViewById(R.id.thumbnail);
             titleView = (TextView) view.findViewById(R.id.article_title);
             subtitleView = (TextView) view.findViewById(R.id.article_subtitle);
-            c = view.getContext();
-        }
-
-        public void setTransitionName(String name) {
-            transitionName = name;
         }
     }
 }

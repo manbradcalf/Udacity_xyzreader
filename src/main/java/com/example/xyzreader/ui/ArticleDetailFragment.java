@@ -4,10 +4,13 @@ import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.CoordinatorLayout;
 import android.text.Html;
@@ -23,6 +26,7 @@ import android.widget.TextView;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
+import com.example.xyzreader.data.Constants;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
@@ -57,17 +61,20 @@ public class ArticleDetailFragment extends Fragment implements
     private String mTransitionName;
     private static final String ARG_ARTICLE_POSITION = "arg_article_position";
     private static final String ARG_STARTING_ARTICLE_IMAGE_POSITION = "arg_starting_article_image_position";
-    private int mArticlePosition;
+    private int mCurrentPosition;
     private int mStartingPosition;
-    private final Callback mImageCallback = new Callback() {
+    private final Callback mImageCallback = new Callback()
+    {
         @Override
-        public void onSuccess() {
-            scheduleStartPostponedTransition(mPhotoView);
+        public void onSuccess()
+        {
+            startPostponedTransition();
         }
 
         @Override
-        public void onError() {
-            scheduleStartPostponedTransition(mPhotoView);
+        public void onError()
+        {
+            startPostponedTransition();
         }
     };
 
@@ -103,9 +110,9 @@ public class ArticleDetailFragment extends Fragment implements
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
         mStatusBarFullOpacityBottom = getResources().getDimensionPixelSize(
                 R.dimen.detail_card_top_margin);
+        //TODO: change ARG_STAR... to be static member in ArticleListActivity
         mStartingPosition = getArguments().getInt(ARG_STARTING_ARTICLE_IMAGE_POSITION);
-//        mArticlePosition = getArguments().getInt(ARG_ARTICLE_POSITION);
-//        mStartingPosition = (int) mPhotoView.getTag(TAG_STARTING_POSITION);
+        mCurrentPosition = getArguments().getInt(ARG_ARTICLE_POSITION);
         setHasOptionsMenu(true);
     }
 
@@ -133,6 +140,8 @@ public class ArticleDetailFragment extends Fragment implements
         mRootView = inflater.inflate(R.layout.fragment_article_detail_redo, container, false);
         mCoordinatorLayout = (CoordinatorLayout)
                 mRootView.findViewById(R.id.coordinator_layout_detail_rootview);
+        mPhotoView = (ImageView) mRootView.findViewById(R.id.toolbar_article_image);
+        mPhotoView.setTransitionName(Constants.ARTICLES.get(mCurrentPosition));
 
         bindViews();
         return mRootView;
@@ -145,9 +154,6 @@ public class ArticleDetailFragment extends Fragment implements
         {
             return;
         }
-
-        mPhotoView = (ImageView) mRootView.findViewById(R.id.toolbar_article_image);
-
         TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
         bylineView.setMovementMethod(new LinkMovementMethod());
@@ -235,24 +241,44 @@ public class ArticleDetailFragment extends Fragment implements
                 : mPhotoView.getHeight() - mScrollY;
     }
 
-    private void scheduleStartPostponedTransition(final View sharedElement)
+    public void startPostponedTransition()
     {
-//        if (mArticlePosition == mStartingPosition)
+        if (mCurrentPosition == mStartingPosition)
         {
-            sharedElement.getViewTreeObserver().addOnPreDrawListener(
+            mPhotoView.getViewTreeObserver().addOnPreDrawListener(
                     new ViewTreeObserver.OnPreDrawListener()
                     {
                         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                         @Override
                         public boolean onPreDraw()
                         {
-                            sharedElement.getViewTreeObserver().removeOnPreDrawListener(this);
+                            mPhotoView.getViewTreeObserver().removeOnPreDrawListener(this);
                             getActivity().startPostponedEnterTransition();
                             return true;
                         }
                     });
         }
 
+    }
+
+    @Nullable
+    ImageView getAlbumImage()
+    {
+        if (isViewInBounds(getActivity().getWindow().getDecorView(), mPhotoView))
+        {
+            return mPhotoView;
+        }
+        return null;
+    }
+
+    /**
+     * Returns true if {@param view} is contained within {@param container}'s bounds.
+     */
+    private static boolean isViewInBounds(@NonNull View container, @NonNull View view)
+    {
+        Rect containerBounds = new Rect();
+        container.getHitRect(containerBounds);
+        return view.getLocalVisibleRect(containerBounds);
     }
 }
 
