@@ -90,6 +90,7 @@ public class ArticleDetailActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         ActivityCompat.postponeEnterTransition(this);
+        setEnterSharedElementCallback(mCallback);
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
                         View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
@@ -279,6 +280,7 @@ public class ArticleDetailActivity extends AppCompatActivity
                 mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
                 updateUpButtonPosition();
             }
+            mArticleDetailFragment = fragment;
         }
 
         @Override

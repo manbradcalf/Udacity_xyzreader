@@ -1,6 +1,7 @@
 package com.example.xyzreader.ui;
 
 import android.app.LoaderManager;
+import android.app.SharedElementCallback;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +27,9 @@ import com.example.xyzreader.data.Constants;
 import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.data.UpdaterService;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * An activity representing a list of Articles. This activity has different presentations for
  * handset and tablet-size devices. On handsets, the activity presents a list of items, which when
@@ -42,15 +46,50 @@ public class ArticleListActivity extends AppCompatActivity implements
     static final String STATE_CURRENT_ARTICLE_POSITION = "state_current_article_position";
     static final int TAG_STARTING_POSITION = 0;
     private Bundle mTmpReenterState;
+    private final SharedElementCallback mCallback = new SharedElementCallback() {
+        @Override
+        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+            if (mTmpReenterState != null) {
+                int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ARTICLE_POSITION);
+                int currentPosition = mTmpReenterState.getInt(STATE_CURRENT_ARTICLE_POSITION);
+                if (startingPosition != currentPosition) {
+                    // If startingPosition != currentPosition the user must have swiped to a
+                    // different page in the DetailsActivity. We must update the shared element
+                    // so that the correct one falls into place.
+                    String newTransitionName = Constants.ARTICLES.get(currentPosition);
+                    View newSharedElement = mRecyclerView.findViewWithTag(newTransitionName);
+                    if (newSharedElement != null) {
+                        names.clear();
+                        names.add(newTransitionName);
+                        sharedElements.clear();
+                        sharedElements.put(newTransitionName, newSharedElement);
+                    }
+                }
+
+                mTmpReenterState = null;
+            } else {
+                // If mTmpReenterState is null, then the activity is exiting.
+                View navigationBar = findViewById(android.R.id.navigationBarBackground);
+                View statusBar = findViewById(android.R.id.statusBarBackground);
+                if (navigationBar != null) {
+                    names.add(navigationBar.getTransitionName());
+                    sharedElements.put(navigationBar.getTransitionName(), navigationBar);
+                }
+                if (statusBar != null) {
+                    names.add(statusBar.getTransitionName());
+                    sharedElements.put(statusBar.getTransitionName(), statusBar);
+                }
+            }
+        }
+    };
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
-
+        setExitSharedElementCallback(mCallback);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
-
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         getLoaderManager().initLoader(0, null, this);
 
@@ -66,7 +105,6 @@ public class ArticleListActivity extends AppCompatActivity implements
         int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ARTICLE_POSITION);
         int currentPosition = mTmpReenterState.getInt(STATE_CURRENT_ARTICLE_POSITION);
         if (startingPosition != currentPosition) {
-//            mRecyclerView.smoothScrollToPosition(currentPosition);
             mRecyclerView.scrollToPosition(currentPosition);
         }
         postponeEnterTransition();
@@ -191,10 +229,10 @@ public class ArticleListActivity extends AppCompatActivity implements
             holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
 
             // Add the position and title to the arraylist for transition name access in DetailActivity
-            if(Constants.ARTICLES.size() == 0 || Constants.ARTICLES.size() <= position)
-            {
-                Constants.ARTICLES.add(position,mCursor.getString(ArticleLoader.Query.TITLE));
-            }
+//            if(Constants.ARTICLES.size() == 0 || Constants.ARTICLES.size() <= position)
+//            {
+//                Constants.ARTICLES.add(position,mCursor.getString(ArticleLoader.Query.TITLE));
+//            }
             // Set the transition name for the animation to something unique, like title
             holder.thumbnailView.setTransitionName(mCursor.getString(ArticleLoader.Query.TITLE));
             holder.thumbnailView.setTag(mCursor.getString(ArticleLoader.Query.TITLE));
