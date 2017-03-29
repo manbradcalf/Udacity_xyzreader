@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -114,7 +113,7 @@ public class ArticleDetailActivity extends AppCompatActivity
                 .applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics()));
         mPager.setPageMarginDrawable(new ColorDrawable(0x22000000));
 
-        mPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener()
+        mPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener()
         {
             @Override
             public void onPageScrollStateChanged(int state)
@@ -128,12 +127,12 @@ public class ArticleDetailActivity extends AppCompatActivity
             @Override
             public void onPageSelected(int position)
             {
+                mCurrentPosition = position;
                 if (mCursor != null)
                 {
                     mCursor.moveToPosition(position);
                 }
                 mSelectedItemId = mCursor.getLong(ArticleLoader.Query._ID);
-                mCurrentPosition = position;
                 updateUpButtonPosition();
             }
         });
@@ -150,8 +149,6 @@ public class ArticleDetailActivity extends AppCompatActivity
             }
         });
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-        {
             mUpButtonContainer.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener()
             {
                 @Override
@@ -164,7 +161,6 @@ public class ArticleDetailActivity extends AppCompatActivity
                     return windowInsets;
                 }
             });
-        }
 
         mFAB = (FloatingActionButton) findViewById(R.id.share_fab);
         mFAB.setOnClickListener(new View.OnClickListener()
