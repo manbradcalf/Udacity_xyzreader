@@ -21,6 +21,7 @@
 
             <ImageView
                 android:id="@+id/toolbar_article_image"
+                android:transitionName="article_image"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/image_view_height"
                 android:scaleType="centerCrop"
