@@ -101,7 +101,6 @@ public class ArticleDetailActivity extends AppCompatActivity
 
         // Get the starting position of the Article in the pager
         mStartingPosition = getIntent().getIntExtra(ArticleListActivity.EXTRA_STARTING_ARTICLE_POSITION, 0);
-        //TODO: Understand this
         if (savedInstanceState == null) {
             mCurrentPosition = mStartingPosition;
         } else {

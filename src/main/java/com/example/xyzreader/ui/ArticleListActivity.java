@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -17,12 +16,9 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
-import android.transition.Explode;
-import android.transition.TransitionManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-
 import android.widget.TextView;
 
 import com.example.xyzreader.R;
@@ -51,19 +47,24 @@ public class ArticleListActivity extends AppCompatActivity implements
     static final String STATE_CURRENT_ARTICLE_POSITION = "state_current_article_position";
     static final int TAG_STARTING_POSITION = 0;
     private Bundle mTmpReenterState;
-    private final SharedElementCallback mCallback = new SharedElementCallback() {
+    private final SharedElementCallback mCallback = new SharedElementCallback()
+    {
         @Override
-        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
-            if (mTmpReenterState != null) {
+        public void onMapSharedElements(List<String> names, Map<String, View> sharedElements)
+        {
+            if (mTmpReenterState != null)
+            {
                 int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ARTICLE_POSITION);
                 int currentPosition = mTmpReenterState.getInt(STATE_CURRENT_ARTICLE_POSITION);
-                if (startingPosition != currentPosition) {
+                if (startingPosition != currentPosition)
+                {
                     // If startingPosition != currentPosition the user must have swiped to a
                     // different page in the DetailsActivity. We must update the shared element
                     // so that the correct one falls into place.
                     String newTransitionName = Constants.ARTICLES.get(currentPosition);
                     View newSharedElement = mRecyclerView.findViewWithTag(newTransitionName);
-                    if (newSharedElement != null) {
+                    if (newSharedElement != null)
+                    {
                         names.clear();
                         names.add(newTransitionName);
                         sharedElements.clear();
@@ -72,15 +73,19 @@ public class ArticleListActivity extends AppCompatActivity implements
                 }
 
                 mTmpReenterState = null;
-            } else {
+            }
+            else
+            {
                 // If mTmpReenterState is null, then the activity is exiting.
                 View navigationBar = findViewById(android.R.id.navigationBarBackground);
                 View statusBar = findViewById(android.R.id.statusBarBackground);
-                if (navigationBar != null) {
+                if (navigationBar != null)
+                {
                     names.add(navigationBar.getTransitionName());
                     sharedElements.put(navigationBar.getTransitionName(), navigationBar);
                 }
-                if (statusBar != null) {
+                if (statusBar != null)
+                {
                     names.add(statusBar.getTransitionName());
                     sharedElements.put(statusBar.getTransitionName(), statusBar);
                 }
@@ -106,18 +111,22 @@ public class ArticleListActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onActivityReenter(int requestCode, Intent data) {
+    public void onActivityReenter(int requestCode, Intent data)
+    {
         super.onActivityReenter(requestCode, data);
         mTmpReenterState = new Bundle(data.getExtras());
+        postponeEnterTransition();
         int startingPosition = mTmpReenterState.getInt(EXTRA_STARTING_ARTICLE_POSITION);
         int currentPosition = mTmpReenterState.getInt(STATE_CURRENT_ARTICLE_POSITION);
-        if (startingPosition != currentPosition) {
+        if (startingPosition != currentPosition)
+        {
             mRecyclerView.scrollToPosition(currentPosition);
         }
-        postponeEnterTransition();
-        mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+        mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener()
+        {
             @Override
-            public boolean onPreDraw() {
+            public boolean onPreDraw()
+            {
                 mRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
                 // TODO: figure out why it is necessary to request layout here in order to get a smooth transition.
                 mRecyclerView.requestLayout();
@@ -127,7 +136,8 @@ public class ArticleListActivity extends AppCompatActivity implements
         });
     }
 
-    private void refresh() {
+    private void refresh()
+    {
         startService(new Intent(this, UpdaterService.class));
     }
 
@@ -212,9 +222,11 @@ public class ArticleListActivity extends AppCompatActivity implements
             View view = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
             final ViewHolder vh = new ViewHolder(view);
 
-            view.setOnClickListener(new View.OnClickListener() {
+            view.setOnClickListener(new View.OnClickListener()
+            {
                 @Override
-                public void onClick(View view) {
+                public void onClick(View view)
+                {
 
                     Intent intent = new Intent(
                             Intent.ACTION_VIEW,
@@ -251,13 +263,16 @@ public class ArticleListActivity extends AppCompatActivity implements
             holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
 
             // Add the position and title to the arraylist for transition name access in DetailActivity
-//            if(Constants.ARTICLES.size() == 0 || Constants.ARTICLES.size() <= position)
-//            {
-//                Constants.ARTICLES.add(position,mCursor.getString(ArticleLoader.Query.TITLE));
-//            }
+            if (Constants.ARTICLES.size() == 0 || Constants.ARTICLES.size() <= position)
+            {
+                if (!Constants.ARTICLES.contains(mCursor.getString(ArticleLoader.Query.TITLE)))
+                {
+                    Constants.ARTICLES.add(position, mCursor.getString(ArticleLoader.Query.TITLE));
+                }
+            }
             // Set the transition name for the animation to something unique, like title
-            holder.thumbnailView.setTransitionName(mCursor.getString(ArticleLoader.Query.TITLE));
-            holder.thumbnailView.setTag(mCursor.getString(ArticleLoader.Query.TITLE));
+            holder.thumbnailView.setTransitionName(Constants.ARTICLES.get(position));
+            holder.thumbnailView.setTag(Constants.ARTICLES.get(position));
             holder.mArticlePosition = position;
 
         }
