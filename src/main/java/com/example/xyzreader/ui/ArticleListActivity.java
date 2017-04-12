@@ -61,6 +61,7 @@ public class ArticleListActivity extends AppCompatActivity implements
                     // If startingPosition != currentPosition the user must have swiped to a
                     // different page in the DetailsActivity. We must update the shared element
                     // so that the correct one falls into place.
+                    mRecyclerView.scrollToPosition(currentPosition);
                     String newTransitionName = Constants.ARTICLES.get(currentPosition);
                     View newSharedElement = mRecyclerView.findViewWithTag(newTransitionName);
                     if (newSharedElement != null)
