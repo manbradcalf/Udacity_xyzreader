@@ -17,7 +17,7 @@
             app:contentScrim="@color/theme_primary"
             app:expandedTitleMarginEnd="@dimen/CollapsingToolBar_expandedTitleMarginEnd"
             app:expandedTitleMarginStart="@dimen/CollapsingToolBar_expandedTitleMarginStart"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed">
 
             <ImageView
                 android:id="@+id/toolbar_article_image"
@@ -30,9 +30,9 @@
             <android.support.v7.widget.Toolbar
                 android:id="@+id/detail_toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="?android:attr/actionBarSize"
                 app:layout_collapseMode="pin"
-                app:layout_scrollFlags="scroll|enterAlways"
+                app:layout_scrollFlags="scroll|enterAlways|snap"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
 
