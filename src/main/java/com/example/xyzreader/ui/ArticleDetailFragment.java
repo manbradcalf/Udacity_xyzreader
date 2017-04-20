@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
@@ -63,6 +64,7 @@ public class ArticleDetailFragment extends Fragment implements
     private static final String ARG_STARTING_ARTICLE_IMAGE_POSITION = "arg_starting_article_image_position";
     private int mCurrentPosition;
     private int mStartingPosition;
+    private Toolbar mToolbar;
     private final Callback mImageCallback = new Callback()
     {
         @Override
@@ -140,6 +142,7 @@ public class ArticleDetailFragment extends Fragment implements
         mRootView = inflater.inflate(R.layout.fragment_article_detail_redo, container, false);
         mCoordinatorLayout = (CoordinatorLayout)
                 mRootView.findViewById(R.id.coordinator_layout_detail_rootview);
+        mToolbar = (Toolbar) mRootView.findViewById(R.id.detail_toolbar);
         mPhotoView = (ImageView) mRootView.findViewById(R.id.toolbar_article_image);
         mPhotoView.setTransitionName(Constants.ARTICLES.get(mCurrentPosition));
 
@@ -154,7 +157,7 @@ public class ArticleDetailFragment extends Fragment implements
         {
             return;
         }
-        TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
+//        TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
         bylineView.setMovementMethod(new LinkMovementMethod());
         TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
@@ -169,7 +172,8 @@ public class ArticleDetailFragment extends Fragment implements
             mRootView.setAlpha(0);
             mRootView.setVisibility(View.VISIBLE);
             mRootView.animate().alpha(1);
-            titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
+            mToolbar.setTitle(mCursor.getString(ArticleLoader.Query.TITLE));
+//            titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
             bylineView.setText(Html.fromHtml(
                     DateUtils.getRelativeTimeSpanString(
                             mCursor.getLong(ArticleLoader.Query.PUBLISHED_DATE),
@@ -186,7 +190,7 @@ public class ArticleDetailFragment extends Fragment implements
         else
         {
             mRootView.setVisibility(View.GONE);
-            titleView.setText("N/A");
+//            titleView.setText("N/A");
             bylineView.setText("N/A");
             bodyView.setText("N/A");
         }
