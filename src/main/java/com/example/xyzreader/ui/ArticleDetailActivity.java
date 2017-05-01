@@ -39,11 +39,6 @@ public class ArticleDetailActivity extends AppCompatActivity
 
     private Cursor mCursor;
     private long mStartId;
-
-    private long mSelectedItemId;
-    private int mSelectedItemUpButtonFloor = Integer.MAX_VALUE;
-    private int mTopInset;
-
     private ViewPager mPager;
     private MyPagerAdapter mPagerAdapter;
     private FloatingActionButton mFAB;
@@ -126,7 +121,6 @@ public class ArticleDetailActivity extends AppCompatActivity
                 {
                     mCursor.moveToPosition(position);
                 }
-                mSelectedItemId = mCursor.getLong(ArticleLoader.Query._ID);
             }
         });
 
@@ -150,7 +144,6 @@ public class ArticleDetailActivity extends AppCompatActivity
             if (getIntent() != null && getIntent().getData() != null)
             {
                 mStartId = ItemsContract.Items.getItemId(getIntent().getData());
-                mSelectedItemId = mStartId;
             }
         }
     }

@@ -14,7 +14,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,12 +39,10 @@ public class ArticleListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>
 {
 
-    private Toolbar mToolbar;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
     static final String EXTRA_STARTING_ARTICLE_POSITION = "extra_starting_item_position";
     static final String STATE_CURRENT_ARTICLE_POSITION = "state_current_article_position";
-    static final int TAG_STARTING_POSITION = 0;
     private Bundle mTmpReenterState;
     private final SharedElementCallback mCallback = new SharedElementCallback()
     {
