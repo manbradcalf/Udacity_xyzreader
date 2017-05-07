@@ -125,7 +125,7 @@ public class ArticleDetailFragment extends Fragment implements
         return mRootView;
     }
 
-
+    @SuppressWarnings("deprecation")
     private void bindViews()
     {
         if (mRootView == null)
@@ -150,6 +150,10 @@ public class ArticleDetailFragment extends Fragment implements
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             {
+                // Dear reviewer, this if clause is using the new signature.
+                // Html.FROM_HTML_MODE_LEGACY is a string
+                // Please see this link which I referenced to solve this problem
+                // http://stackoverflow.com/questions/37904739/html-fromhtml-deprecated-in-android-n
                 bylineView.setText(Html.fromHtml(DateUtils.getRelativeTimeSpanString(
                         mCursor.getLong(ArticleLoader.Query.PUBLISHED_DATE),
                         System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,

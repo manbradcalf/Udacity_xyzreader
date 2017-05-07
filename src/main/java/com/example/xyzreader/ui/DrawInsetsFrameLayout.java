@@ -34,7 +34,6 @@ public class DrawInsetsFrameLayout extends FrameLayout {
 
     private Rect mInsets;
     private Rect mTempRect = new Rect();
-    private OnInsetsCallback mOnInsetsCallback;
 
     public DrawInsetsFrameLayout(Context context) {
         super(context);
@@ -90,9 +89,6 @@ public class DrawInsetsFrameLayout extends FrameLayout {
                 insets.getSystemWindowInsetBottom());
         setWillNotDraw(false);
         postInvalidateOnAnimation();
-        if (mOnInsetsCallback != null) {
-            mOnInsetsCallback.onInsetsChanged(mInsets);
-        }
         return insets;
     }
 
@@ -131,9 +127,5 @@ public class DrawInsetsFrameLayout extends FrameLayout {
                 mInsetBackground.draw(canvas);
             }
         }
-    }
-
-    public interface OnInsetsCallback {
-        void onInsetsChanged(Rect insets);
     }
 }
